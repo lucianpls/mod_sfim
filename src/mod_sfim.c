@@ -107,7 +107,7 @@ static const char *entry_set(cmd_parms *cmd, void *dconf, const char *filename, 
     return NULL;
 }
 
-static void create_dir_config(apr_pool_t *p, char *dummy)
+static void *create_dir_config(apr_pool_t *p, char *dummy)
 {
     sfim_conf *c =
         (sfim_conf *)apr_pcalloc(p, sizeof(sfim_conf));
@@ -124,7 +124,7 @@ static const command_rec cmds[] =
 {
     AP_INIT_TAKE3(
         "SendFileIfMatch",
-        (cmd_func)entry_set, // Callback
+        entry_set, // Callback
         0, // Self pass argument
         ACCESS_CONF,
         "The file to send and the regexp to match against the URI"
