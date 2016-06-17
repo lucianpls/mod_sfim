@@ -69,10 +69,11 @@ static int send_the_file(request_rec *r, const char *filename, const char *type)
 
 static int handler(request_rec *r)
 {
+    int i;
     if (r->method_number != M_GET) return DECLINED; // Only GET requests
     sfim_conf *cfg = (sfim_conf *)ap_get_module_config(r->per_dir_config, &sfim_module);
     if (!cfg || cfg->matches == NULL) return DECLINED;
-    for (int i = 0; i < cfg->matches->nelts; i++) {
+    for (i = 0; i < cfg->matches->nelts; i++) {
         match m = APR_ARRAY_IDX(cfg->matches, i, match);
         // Returns 0 for a match
         if (ap_regexec(m.regexp, r->uri, 0, NULL, 0))
