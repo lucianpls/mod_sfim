@@ -16,11 +16,35 @@
 #include "mod_sfim.h"
 
 // Returns 1 if string s ends with the ending string
-static int ends_with(const char *ending, const char *s) {
-    int ls = strlen(s);
-    int le = strlen(ending);
-    if (le > ls) return 0;
-    return NULL != strstr(s + ls - le, ending);
+//static int ends_with(const char *ending, const char *s) {
+//    int ls = strlen(s);
+//    int le = strlen(ending);
+//    if (le > ls) return 0;
+//    return NULL != strstr(s + ls - le, ending);
+//}
+//
+
+// Find first instance of char c in string, or null
+char *find_first(const char *s, char c) {
+    while (*s && *s != c) s++;
+    return s;
+}
+
+apr_table_t *tokenize_args(request_rec *r)
+{
+    apr_table_t *table = apr_table_make(r->pool, 4);
+    char *start = r->args;
+    do {
+        char *end = find_first(start, '&');
+        char *equal = find_first(start, '=');
+        if (*equal) { // found a key value pair
+            char *key = apr_pstrndup(r->pool, start, equal - start);
+            char *val = apr_pstrndup(r->pool, equal + 1, end - equal - 1);
+            apr_table_addn(table, key, val);
+        }
+        start = end;
+    } while (*start);
+    return table;
 }
 
 static int send_the_file(request_rec *r, const char *filename, const char *type)
@@ -59,10 +83,28 @@ static int send_the_file(request_rec *r, const char *filename, const char *type)
         return HTTP_INTERNAL_SERVER_ERROR;
     }
 
-    // Got the content, send it
-    ap_set_content_type(r, type);
-    ap_rwrite(buffer, read_bytes, r);
+    // Use applicaton/pjson type as a flag to look after the callback
+    char *callback = NULL;
 
+    // Got the content, send it
+    if (0 == apr_strnatcmp(type, "application/pjson")) {
+        if (r->args) // Pick up the callback if we have one
+            callback = apr_table_get(tokenize_args(r), "callback");
+        ap_set_content_type(r, "application/json"); // Set the type to plain json
+    } else 
+        ap_set_content_type(r, type);
+
+    if (callback) {
+        ap_set_content_length(r, read_bytes + strlen(callback) + 2);
+        ap_rwrite(callback, strlen(callback), r);
+        ap_rwrite("(", 1, r);
+        ap_rwrite(buffer, read_bytes, r);
+        ap_rwrite(")", 1, r);
+        return OK;
+    }
+
+    ap_set_content_length(r, read_bytes);
+    ap_rwrite(buffer, read_bytes, r);
     return OK; // Done
 }
  
@@ -73,10 +115,13 @@ static int handler(request_rec *r)
     if (r->method_number != M_GET) return DECLINED; // Only GET requests
     sfim_conf *cfg = (sfim_conf *)ap_get_module_config(r->per_dir_config, &sfim_module);
     if (!cfg || cfg->matches == NULL) return DECLINED;
+
+    // Match against the URL if args exist
+    char * url_to_match = r->args ? apr_pstrcat(r->pool, r->uri, "?", r->args, NULL) : r->uri;
     for (i = 0; i < cfg->matches->nelts; i++) {
         match m = APR_ARRAY_IDX(cfg->matches, i, match);
         // Returns 0 for a match
-        if (ap_regexec(m.regexp, r->uri, 0, NULL, 0))
+        if (ap_regexec(m.regexp, url_to_match, 0, NULL, 0))
             continue;
         // It did match
         return send_the_file(r, m.filename, m.type);
