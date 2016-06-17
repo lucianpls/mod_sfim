@@ -42,7 +42,7 @@ apr_table_t *tokenize_args(request_rec *r)
             char *val = apr_pstrndup(r->pool, equal + 1, end - equal - 1);
             apr_table_addn(table, key, val);
         }
-        start = end;
+        start = *end ? end + 1 : end;
     } while (*start);
     return table;
 }
