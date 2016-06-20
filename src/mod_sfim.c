@@ -145,7 +145,7 @@ static const char *entry_set(cmd_parms *cmd, void *dconf, const char *filename, 
         int msize = 2048;
         char *message = apr_palloc(cmd->temp_pool, msize);
         ap_regerror(error, m->regexp, message, msize);
-        return message;
+        return apr_psprintf(cmd->pool, "SFIM Regexp failed %s", message);
     }
     m->filename = apr_pstrdup(cmd->pool, filename);
     m->type = apr_pstrdup(cmd->pool, type);
