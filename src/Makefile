@@ -1,5 +1,6 @@
-# Create the ../Makefile.lcl, which should define
+# Create the Makefile.lcl, which should define
 # MOD_PATH, the folder where the apache module should reside
+# For example, loot at Makefile.lcl.example
 
 include Makefile.lcl
 
