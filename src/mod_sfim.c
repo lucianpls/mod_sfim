@@ -25,7 +25,7 @@
 //
 
 // Find first instance of char c in string, or null
-char *find_first(const char *s, char c) {
+const char *find_first(const char *s, char c) {
     while (*s && *s != c) s++;
     return s;
 }
@@ -33,10 +33,10 @@ char *find_first(const char *s, char c) {
 apr_table_t *tokenize_args(request_rec *r)
 {
     apr_table_t *table = apr_table_make(r->pool, 4);
-    char *start = r->args;
+    const char *start = r->args;
     do {
-        char *end = find_first(start, '&');
-        char *equal = find_first(start, '=');
+        const char *end = find_first(start, '&');
+        const char *equal = find_first(start, '=');
         if (*equal) { // found a key value pair
             char *key = apr_pstrndup(r->pool, start, equal - start);
             char *val = apr_pstrndup(r->pool, equal + 1, end - equal - 1);
@@ -62,7 +62,7 @@ static int send_the_file(request_rec *r, const char *filename, const char *type)
         ap_log_error(APLOG_MARK, APLOG_ERR, 0, r->server, "File %s too large, max is %d", filename, MAX_FILE_SIZE);
         return HTTP_INTERNAL_SERVER_ERROR;
     }
-    void *buffer = apr_palloc(r->pool, info.size);
+    void *buffer = apr_palloc(r->pool, (apr_size_t)info.size);
 
     if (!buffer) { // Good luck with this one
         ap_log_error(APLOG_MARK, APLOG_CRIT, 0, r->server, "Memory allocation failure");
@@ -76,7 +76,7 @@ static int send_the_file(request_rec *r, const char *filename, const char *type)
         return HTTP_INTERNAL_SERVER_ERROR;
     }
 
-    apr_size_t read_bytes = info.size;
+    apr_size_t read_bytes = (apr_size_t)info.size;
     stat = apr_file_read(f, buffer, &read_bytes);
     if (APR_SUCCESS != stat) {
         ap_log_error(APLOG_MARK, APLOG_ERR, 0, r->server, fmt, filename, stat);
@@ -84,7 +84,7 @@ static int send_the_file(request_rec *r, const char *filename, const char *type)
     }
 
     // Use applicaton/pjson type as a flag to look after the callback
-    char *callback = NULL;
+    const char *callback = NULL;
 
     // Got the content, send it
     if (0 == apr_strnatcmp(type, "application/pjson")) {
