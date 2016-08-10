@@ -87,7 +87,7 @@ static int send_the_file(request_rec *r, const char *filename, const char *type)
     const char *callback = NULL;
 
     // Got the content, send it
-    if (0 == apr_strnatcmp(type, "application/pjson")) {
+    if (0 == apr_strnatcmp(type, "application/jsonp")) {
         if (r->args) // Pick up the callback if we have one
             callback = apr_table_get(tokenize_args(r), "callback");
         ap_set_content_type(r, "application/json"); // Set the type to plain json
