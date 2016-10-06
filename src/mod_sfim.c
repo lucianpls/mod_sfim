@@ -25,12 +25,12 @@
 //
 
 // Find first instance of char c in string, or null
-const char *find_first(const char *s, char c) {
-    while (*s && *s != c) s++;
+static const char *find_first(const char *s, char c) {
+    while (*s != c && *s) s++;
     return s;
 }
 
-apr_table_t *tokenize_args(request_rec *r)
+static apr_table_t *tokenize_args(request_rec *r)
 {
     apr_table_t *table = apr_table_make(r->pool, 4);
     const char *start = r->args;
@@ -52,18 +52,19 @@ static int send_the_file(request_rec *r, const char *filename, const char *type)
     static const char *fmt = "%s: %m";
     apr_status_t stat;
     apr_finfo_t info;
+    apr_size_t size;
+    apr_size_t sent = 0;
+
     stat = apr_stat(&info, filename, APR_FINFO_SIZE, r->pool);
+
     if (APR_SUCCESS != stat) {
         ap_log_error(APLOG_MARK, APLOG_ERR, 0, r->server, fmt, filename, stat);
         return HTTP_INTERNAL_SERVER_ERROR;
     }
 
-    if (info.size > MAX_FILE_SIZE) {
-        ap_log_error(APLOG_MARK, APLOG_ERR, 0, r->server, "File %s too large, max is %d", filename, MAX_FILE_SIZE);
-        return HTTP_INTERNAL_SERVER_ERROR;
-    }
-    void *buffer = apr_palloc(r->pool, (apr_size_t)info.size);
+    size = (apr_size_t) ((info.size > MAX_FILE_SIZE) ? MAX_FILE_SIZE : info.size);
 
+    void *buffer = apr_palloc(r->pool, size);
     if (!buffer) { // Good luck with this one
         ap_log_error(APLOG_MARK, APLOG_CRIT, 0, r->server, "Memory allocation failure");
         return HTTP_INTERNAL_SERVER_ERROR;
@@ -71,13 +72,6 @@ static int send_the_file(request_rec *r, const char *filename, const char *type)
 
     apr_file_t *f;
     stat = apr_file_open(&f, filename, APR_FOPEN_READ | APR_FOPEN_BINARY, 0, r->pool);
-    if (APR_SUCCESS != stat) {
-        ap_log_error(APLOG_MARK, APLOG_ERR, 0, r->server, fmt, filename, stat);
-        return HTTP_INTERNAL_SERVER_ERROR;
-    }
-
-    apr_size_t read_bytes = (apr_size_t)info.size;
-    stat = apr_file_read(f, buffer, &read_bytes);
     if (APR_SUCCESS != stat) {
         ap_log_error(APLOG_MARK, APLOG_ERR, 0, r->server, fmt, filename, stat);
         return HTTP_INTERNAL_SERVER_ERROR;
@@ -91,20 +85,34 @@ static int send_the_file(request_rec *r, const char *filename, const char *type)
         if (r->args) // Pick up the callback if we have one
             callback = apr_table_get(tokenize_args(r), "callback");
         ap_set_content_type(r, "application/json"); // Set the type to plain json
-    } else 
+    }
+    else
         ap_set_content_type(r, type);
 
     if (callback) {
-        ap_set_content_length(r, read_bytes + strlen(callback) + 2);
+        ap_set_content_length(r, info.size + strlen(callback) + 2);
         ap_rwrite(callback, strlen(callback), r);
         ap_rwrite("(", 1, r);
-        ap_rwrite(buffer, read_bytes, r);
-        ap_rwrite(")", 1, r);
-        return OK;
     }
 
-    ap_set_content_length(r, read_bytes);
-    ap_rwrite(buffer, read_bytes, r);
+    while (sent != (apr_size_t)info.size) {
+        apr_size_t read_bytes = size;
+        stat = apr_file_read(f, buffer, &read_bytes);
+
+        if (APR_SUCCESS != stat || size != read_bytes) {
+            ap_log_error(APLOG_MARK, APLOG_ERR, 0, r->server, fmt, filename, stat);
+            return HTTP_INTERNAL_SERVER_ERROR;
+        }
+
+        ap_rwrite(buffer, read_bytes, r);
+        sent += read_bytes;
+        if (sent + size > info.size)
+            size = info.size - sent;
+    }
+
+    if (callback)
+        ap_rwrite(")", 1, r);
+
     return OK; // Done
 }
  
