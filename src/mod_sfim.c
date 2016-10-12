@@ -49,7 +49,7 @@ static apr_table_t *tokenize_args(request_rec *r)
 
 static int send_the_file(request_rec *r, const char *filename, const char *type)
 {
-    static const char *fmt = "%s: %m";
+    static const char *fmt = "%s: %pm";
     apr_status_t stat;
     apr_finfo_t info;
     apr_size_t size;
