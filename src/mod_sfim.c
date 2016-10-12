@@ -88,8 +88,12 @@ static int send_the_file(request_rec *r, const char *filename, const char *type)
     else
         ap_set_content_type(r, type);
 
+    apr_off_t cl = info.size;
+    if (callback)
+        cl += strlen(callback) + 2;
+    ap_set_content_length(r, cl);
+
     if (callback) {
-        ap_set_content_length(r, info.size + strlen(callback) + 2);
         ap_rwrite(callback, strlen(callback), r);
         ap_rwrite("(", 1, r);
     }
