@@ -58,7 +58,7 @@ static int send_the_file(request_rec *r, const char *filename, const char *type)
     stat = apr_stat(&info, filename, APR_FINFO_SIZE, r->pool);
 
     if (APR_SUCCESS != stat) {
-        ap_log_error(APLOG_MARK, APLOG_ERR, 0, r->server, fmt, filename, stat);
+        ap_log_error(APLOG_MARK, APLOG_ERR, 0, r->server, fmt, filename, &stat);
         return HTTP_INTERNAL_SERVER_ERROR;
     }
 
@@ -73,7 +73,7 @@ static int send_the_file(request_rec *r, const char *filename, const char *type)
     apr_file_t *f;
     stat = apr_file_open(&f, filename, APR_FOPEN_READ | APR_FOPEN_BINARY, 0, r->pool);
     if (APR_SUCCESS != stat) {
-        ap_log_error(APLOG_MARK, APLOG_ERR, 0, r->server, fmt, filename, stat);
+        ap_log_error(APLOG_MARK, APLOG_ERR, 0, r->server, fmt, filename, &stat);
         return HTTP_INTERNAL_SERVER_ERROR;
     }
 
@@ -100,7 +100,7 @@ static int send_the_file(request_rec *r, const char *filename, const char *type)
         stat = apr_file_read(f, buffer, &read_bytes);
 
         if (APR_SUCCESS != stat || size != read_bytes) {
-            ap_log_error(APLOG_MARK, APLOG_ERR, 0, r->server, fmt, filename, stat);
+            ap_log_error(APLOG_MARK, APLOG_ERR, 0, r->server, fmt, filename, &stat);
             return HTTP_INTERNAL_SERVER_ERROR;
         }
 
