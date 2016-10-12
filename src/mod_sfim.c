@@ -161,11 +161,8 @@ static const char *entry_set(cmd_parms *cmd, void *dconf, const char *filename, 
     return NULL;
 }
 
-static void *create_dir_config(apr_pool_t *p, char *dummy)
 {
-    sfim_conf *c =
-        (sfim_conf *)apr_pcalloc(p, sizeof(sfim_conf));
-    return c;
+    return apr_pcalloc(p, sizeof(sfim_conf));
 }
 
 static void register_hooks(apr_pool_t *p)
