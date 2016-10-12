@@ -16,7 +16,7 @@
 #include "mod_sfim.h"
 
 
-static int is_absolute(char *s) {
+static int is_absolute(const char *s) {
     if (s == NULL) return 0;
     int len = strlen(s);
     return ((len && s[0] == '/') || (len > 1 && s[1] == ':'));
