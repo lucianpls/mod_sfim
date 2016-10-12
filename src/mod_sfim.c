@@ -155,7 +155,16 @@ static const char *entry_set(cmd_parms *cmd, void *dconf, const char *filename, 
         ap_regerror(error, m->regexp, message, msize);
         return apr_psprintf(cmd->pool, "SFIM Regexp failed %s", message);
     }
-    m->filename = apr_pstrdup(cmd->pool, filename);
+    // If filename starts with / or is X:, assume it is absolute
+    apr_size_t fnlen = strlen(filename);
+    if ((fnlen && filename[0] == '/') ||
+        (fnlen > 1 && filename[1] == ':')) {
+        m->filename = apr_pstrdup(cmd->pool, filename);
+    }
+    else { // file name is relative to the directory being configured
+        // TODO: Check that this work with Location, not only directory
+        m->filename = apr_pstrcat(cmd->pool, cmd->path, filename, NULL);
+    }
     m->type = apr_pstrdup(cmd->pool, type);
 
     return NULL;
