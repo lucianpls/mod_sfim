@@ -11,7 +11,7 @@
 
 
 typedef struct {
-    ap_regex_t *regexp;
+    ap_regex_t *regx;
     char *filename;
     char *type;
 } match;
@@ -19,6 +19,8 @@ typedef struct {
 typedef struct {
     // An apr array is somewhat like a C++ vector
     apr_array_header_t *matches;
+    // Callback regexp
+    ap_regex_t *cbackregx;
 } sfim_conf;
 
 extern module AP_MODULE_DECLARE_DATA sfim_module;
