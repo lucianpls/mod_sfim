@@ -139,7 +139,7 @@ static int handler(request_rec *r)
     for (i = 0; i < cfg->matches->nelts; i++) {
         match m = APR_ARRAY_IDX(cfg->matches, i, match);
         // Returns 0 for a match
-        if (ap_regexec(&m.regx, url_to_match, 0, NULL, 0))
+        if (ap_regexec(m.regx, url_to_match, 0, NULL, 0))
             continue;
         // It did match
         return send_the_file(r, m.filename, m.type);
