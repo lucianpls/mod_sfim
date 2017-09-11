@@ -88,7 +88,7 @@ static int send_the_file(request_rec *r, const char *filename, const char *type)
             callback = apr_table_get(tokenize_args(r), "callback");
 
         // Only use the callback if it matches the callback regexp
-        if (callback && ap_regexec(&cfg->cbackregx, callback, 0, NULL, 0))
+        if (callback && ap_regexec(cfg->cbackregx, callback, 0, NULL, 0))
             callback = NULL;
     }
     else
