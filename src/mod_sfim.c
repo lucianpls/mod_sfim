@@ -19,7 +19,7 @@
 
 static int is_absolute(const char *s) {
     if (s == NULL) return 0;
-    int len = strlen(s);
+    int len = (int)strlen(s);
     return ((len && s[0] == '/') || (len > 1 && s[1] == ':'));
 }
 
@@ -100,7 +100,7 @@ static int send_the_file(request_rec *r, const char *filename, const char *type)
     ap_set_content_length(r, cl);
 
     if (callback) {
-        ap_rwrite(callback, strlen(callback), r);
+        ap_rwrite(callback, (int) strlen(callback), r);
         ap_rwrite("(", 1, r);
     }
 
@@ -113,7 +113,7 @@ static int send_the_file(request_rec *r, const char *filename, const char *type)
             return HTTP_INTERNAL_SERVER_ERROR;
         }
 
-        ap_rwrite(buffer, read_bytes, r);
+        ap_rwrite(buffer, (int) read_bytes, r);
         sent += read_bytes;
         if (sent + size > info.size)
             size = info.size - sent;
