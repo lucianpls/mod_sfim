@@ -1,4 +1,4 @@
-# mod_sfim
+# mod_sfim [AHTSE](https://github.com/lucianpls/AHTSE)
 An apache httpd module that sends back a static file for web requests that match a regexp.
 Adds one directive to the apache configuration file.  
 
