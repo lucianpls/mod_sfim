@@ -1,7 +1,7 @@
 /*
-* An OnEarth module, sends a static file if the request matches a regexp
+* An AHTSE module, sends a static file if the request matches a regexp
 * Lucian Plesea
-* (C) 2016
+* (C) 2016-2019
 */
 
 #include <apr.h>
