@@ -4,7 +4,7 @@
 
 include Makefile.lcl
 
-default:	mod_sfim.c mod_sfim.h
+default:	mod_sfim.c
 	apxs -c $<
 install :       ./.libs/mod_sfim.so
 	sudo    cp ./.libs/mod_sfim.so    $(MOD_PATH)

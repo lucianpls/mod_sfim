@@ -22,9 +22,6 @@
     <ClCompile Include="src\mod_sfim.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\mod_sfim.h" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include=".gitignore" />
     <None Include="LICENSE" />
     <None Include="README.md" />

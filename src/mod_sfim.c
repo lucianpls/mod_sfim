@@ -13,9 +13,24 @@
 #include <apr_strings.h>
 #include <ap_regex.h>
 
-#include "mod_sfim.h"
-
+// The maximum file size that this module can handle
+#define MAX_FILE_SIZE 1024*1024
 #define CALLBACK_REGEXP "^[a-zA-Z][0-9a-zA-Z_$.]*$"
+
+typedef struct {
+    ap_regex_t* regx;
+    char* filename;
+    char* type;
+} match;
+
+typedef struct {
+    // An apr array is somewhat like a C++ vector
+    apr_array_header_t* matches;
+    // Callback regexp
+    ap_regex_t* cbackregx;
+} sfim_conf;
+
+extern module AP_MODULE_DECLARE_DATA sfim_module;
 
 static int is_absolute(const char *s) {
     if (s == NULL) return 0;
@@ -104,7 +119,7 @@ static int send_the_file(request_rec *r, const char *filename, const char *type)
         ap_rwrite("(", 1, r);
     }
 
-    while (sent != (apr_size_t)info.size) {
+    while (sent != info.size) {
         apr_size_t read_bytes = size;
         stat = apr_file_read(f, buffer, &read_bytes);
 
