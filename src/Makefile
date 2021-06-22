@@ -1,11 +1,21 @@
 # Create the Makefile.lcl, which should define
-# MOD_PATH, the folder where the apache module should reside
-# For example, loot at Makefile.lcl.example
+# DEST, the folder where the apache module should reside
+# look at Makefile.lcl.example
+
+MODULE = mod_sfim
+TARGET = .libs/$(MODULE).so
+C_SRC = $(MODULE).c
 
 include Makefile.lcl
 
-default:	mod_sfim.c
+default:	$(TARGET)
+
+$(TARGET):	$(C_SRC)
 	apxs -c $<
-install :       ./.libs/mod_sfim.so
-	sudo    cp ./.libs/mod_sfim.so    $(MOD_PATH)
+
+install	:	$(TARGET)
+	$(SUDO) $(CP) $(TARGET) $(DEST)
+
+clean	:
+	$(RM) -rf .libs *.o *.lo *.slo *.la
 
