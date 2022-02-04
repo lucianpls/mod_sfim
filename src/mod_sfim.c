@@ -137,6 +137,7 @@ static int send_the_file(request_rec *r, const char *filename, const char *type)
     if (callback)
         ap_rwrite(")", 1, r);
 
+    ap_rflush(r);
     return OK; // Done
 }
  
