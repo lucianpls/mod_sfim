@@ -130,7 +130,7 @@ static int send_the_file(request_rec *r, const char *filename, const char *type)
 
         ap_rwrite(buffer, (int) read_bytes, r);
         sent += read_bytes;
-        if (sent + size > info.size)
+        if (sent + size > (apr_size_t)info.size)
             size = info.size - sent;
     }
 
